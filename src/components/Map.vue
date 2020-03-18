@@ -1,39 +1,39 @@
 <template>
   <div class="map">
     <div class="total">
-      <h1>截至{{allData.date}}</h1>
+      <h1>{{allData.times}}</h1>
       <h3>全国疫情</h3>
       <div class="list">
         <div class="confirm">
           <div class="tip">确诊</div>
-          <div class="num">{{allData.diagnosed}}</div>
-          <div class="yesterday">
+          <div class="num">{{allData.gntotal}}</div>
+          <div class="yesterday" v-if="allData.add_daily">
             较昨日
-            <span class="ye-num">+{{allData.diagnosedIncr}}</span>
+            <span class="ye-num">+{{allData.add_daily.addcon}}</span>
           </div>
         </div>
         <div class="sus">
           <div class="tip">疑似</div>
-          <div class="num">{{allData.suspect}}</div>
-          <div class="yesterday">
+          <div class="num">{{allData.sustotal}}</div>
+          <div class="yesterday" v-if="allData.add_daily">
             较昨日
-            <span class="ye-num">+{{allData.suspectIncr}}</span>
+            <span class="ye-num">+{{allData.add_daily.wjw_addsus}}</span>
           </div>
         </div>
         <div class="deal">
           <div class="tip">死亡</div>
-          <div class="num">{{allData.death}}</div>
-          <div class="yesterday">
+          <div class="num">{{allData.deathtotal}}</div>
+          <div class="yesterday" v-if="allData.add_daily">
             较昨日
-            <span class="ye-num">+{{allData.deathIncr}}</span>
+            <span class="ye-num">+{{allData.add_daily.adddeath}}</span>
           </div>
         </div>
         <div class="cure">
           <div class="tip">治愈</div>
-          <div class="num">{{allData.cured}}</div>
-          <div class="yesterday">
+          <div class="num">{{allData.curetotal}}</div>
+          <div class="yesterday" v-if="allData.add_daily">
             较昨日
-            <span class="ye-num">+{{allData.curedIncr}}</span>
+            <span class="ye-num">+{{allData.add_daily.addcure}}</span>
           </div>
         </div>
       </div>
@@ -103,6 +103,7 @@ const option = {
   tooltip: {
     trugger: "item",
     formatter: function(params) {
+      // console.log(params)
       return params.data
         ? `
                ${params.data.name}<br/>
@@ -128,35 +129,56 @@ export default {
   },
   methods: {
     getData() {
-      axios({
-        url: "https://tianqiapi.com/api",
-        params: {
-          appid: "81661511",
-          appsecret: "0oTDWd9T",
-          version: "epidemic",
-          vue: 1
+      jsonp(
+        "https://interface.sina.cn/news/wap/fymap2020_data.d.json?_=1580892522427",
+        {},
+        (err, data) => {
+          console.log(data);
+          this.allData = data.data
+          if (!err) {
+            let list = data.data.list.map(item => ({
+              name: item.name, //省份名称
+              value: item.value, //确诊数量
+              cureNum: item.cureNum, //疑似数量
+              deathNum: item.deathNum //死亡数量
+            }));
+            option.series[0].data = list;
+            this.myChart.setOption(option);
+          }
         }
-      }).then(res => {
-        this.allData = res.data.data;
-        let list = res.data.data.area.map(item => {
-          return {
-            name: item.provinceName, //省份名称
-            value: item.confirmedCount, //确诊数量
-            cureNum: item.curedCount, //治愈数量
-            deathNum: item.deadCount //死亡数量
-          };
-        }, []);
-        option.series[0].data = list;
-        this.myChart.setOption(option, (window.onresize = this.myChart.resize));
-      });
+      );
+      // axios({
+      //   url: "https://tianqiapi.com/api",
+      //   params: {
+      //     appid: "81661511",
+      //     appsecret: "0oTDWd9T",
+      //     version: "epidemic",
+      //     vue: 1
+      //   }
+      // }).then(res => {
+      //   this.allData = res.data.data;
+      //   let list = res.data.data.area.map(item => {
+      //     return {
+      //       name: item.provinceName, //省份名称
+      //       value: item.confirmedCount, //确诊数量
+      //       cureNum: item.curedCount, //治愈数量
+      //       deathNum: item.deadCount //死亡数量
+      //     };
+      //   }, []);
+      //   option.series[0].data = list;
+      //   this.myChart.setOption(option, (window.onresize = this.myChart.resize));
+      // });
     }
   }
 };
 </script>
 
 <style>
+.map {
+  margin-top: 2rem;
+}
 .total {
-  margin: 2rem auto 2rem;
+  margin-bottom: 2rem;
   padding: 0 1.6rem;
   text-align: center;
 }

@@ -12,7 +12,7 @@ const routes = [
 const router = new VueRouter({
   mode: 'history',
   routes,
-  base: '/fymap/', // 生产环境打包设置
+  // base: '/fymap/', // 生产环境打包设置
 })
 
 export default router
